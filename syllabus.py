@@ -1,4 +1,6 @@
 import streamlit as st
+import networkx as nx
+import matplotlib.pyplot as plt
 
 # Sample database of modules
 modules_db = {
@@ -92,11 +94,23 @@ def get_prerequisites(modules, modules_db):
         prerequisites[module] = modules_db.get(module, {}).get("prerequisites", [])
     return prerequisites
 
+def draw_module_graph(modules_db):
+    G = nx.DiGraph()
+    for module, details in modules_db.items():
+        for prereq in details["prerequisites"]:
+            G.add_edge(prereq, module)
+
+    pos = nx.spring_layout(G)
+    plt.figure(figsize=(10, 7))
+    nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold', edge_color='gray')
+    plt.title("Module Prerequisite Graph")
+    st.pyplot(plt)
+
 # Streamlit UI
 st.title("Module Management System")
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["Modules Completed", "Modules Wanted", "Module Information"])
+tab1, tab2, tab3, tab4 = st.tabs(["Modules Completed", "Modules Wanted", "Module Information", "Module Relationships"])
 
 with tab1:
     st.header("Modules Completed")
@@ -157,3 +171,8 @@ with tab3:
                     <p style="margin-bottom: 5px;"><strong>Lecturer:</strong> {modules_db[module]['lecturer']}</p>
                 </div>
                 """, unsafe_allow_html=True)
+
+with tab4:
+    st.header("Module Relationships")
+    st.write("The following graph shows the relationships and prerequisites between modules.")
+    draw_module_graph(modules_db)
